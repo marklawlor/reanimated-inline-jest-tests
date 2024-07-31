@@ -80,6 +80,10 @@ test("useAnimatedStyle() - fails", () => {
 });
 
 test("useAnimatedStyle() - works", () => {
+  /**
+   * This test works because we are using `withTiming` and running the jest timers
+   * Just changing the value doesn't work
+   */
   function UseAnimatedStyle() {
     const width = useSharedValue(100);
 
