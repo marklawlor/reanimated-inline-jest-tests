@@ -41,6 +41,5 @@ test("inline styles", () => {
 
   fireEvent.press(button);
 
-  jest.advanceTimersByTime(500);
   expect(getAnimatedStyle(view).width).toEqual(150);
 });
