@@ -5,11 +5,12 @@ import Animated, {
   getAnimatedStyle,
   useAnimatedStyle,
   withTiming,
+  useAnimatedProps,
 } from "react-native-reanimated";
 
 jest.useFakeTimers();
 
-test("inline styles - fails", () => {
+test("inline styles", () => {
   /**
    * Example taken from https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/your-first-animation#using-a-shared-value
    */
@@ -39,14 +40,69 @@ test("inline styles - fails", () => {
   const view = screen.getByTestId("view");
   const button = screen.getByTestId("button");
 
-  expect(getAnimatedStyle(view)).toEqual({ width: 100 });
+  expect(getAnimatedStyle(view)).toEqual({
+    width: 100,
+    height: 100,
+    backgroundColor: "violet",
+  });
 
   fireEvent.press(button);
 
-  expect(getAnimatedStyle(view)).toEqual({ width: 150 });
+  expect(getAnimatedStyle(view)).toEqual({
+    width: 150,
+    height: 100,
+    backgroundColor: "violet",
+  });
 });
 
-test("useAnimatedStyle() - fails", () => {
+test("inline styles - withTiming", () => {
+  /**
+   * Example taken from https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/your-first-animation#using-a-shared-value
+   */
+  function InlineStyle() {
+    const width = useSharedValue(100);
+
+    const handlePress = () => {
+      width.value = withTiming(width.value + 50, { duration: 500 });
+    };
+
+    return (
+      <View style={{ flex: 1, alignItems: "center" }}>
+        <Animated.View
+          testID="view"
+          style={{
+            width,
+            height: 100,
+            backgroundColor: "violet",
+          }}
+        />
+        <Button testID="button" onPress={handlePress} title="Click me" />
+      </View>
+    );
+  }
+
+  render(<InlineStyle />);
+  const view = screen.getByTestId("view");
+  const button = screen.getByTestId("button");
+
+  expect(getAnimatedStyle(view)).toEqual({
+    width: 100,
+    height: 100,
+    backgroundColor: "violet",
+  });
+
+  fireEvent.press(button);
+
+  jest.runAllTimers();
+
+  expect(getAnimatedStyle(view)).toEqual({
+    width: 150,
+    height: 100,
+    backgroundColor: "violet",
+  });
+});
+
+test("useAnimatedStyle()", () => {
   function UseAnimatedStyle() {
     const width = useSharedValue(100);
 
@@ -76,14 +132,12 @@ test("useAnimatedStyle() - fails", () => {
 
   fireEvent.press(button);
 
+  jest.runAllTimers();
+
   expect(getAnimatedStyle(view)).toEqual({ width: 150 });
 });
 
-test("useAnimatedStyle() - works", () => {
-  /**
-   * This test works because we are using `withTiming` and running the jest timers
-   * Just changing the value doesn't work
-   */
+test("useAnimatedStyle() - withTiming", () => {
   function UseAnimatedStyle() {
     const width = useSharedValue(100);
 
@@ -100,6 +154,80 @@ test("useAnimatedStyle() - works", () => {
     return (
       <View style={{ flex: 1, alignItems: "center" }}>
         <Animated.View testID="view" style={animatedStyle} />
+        <Button testID="button" onPress={handlePress} title="Click me" />
+      </View>
+    );
+  }
+
+  render(<UseAnimatedStyle />);
+  const view = screen.getByTestId("view");
+  const button = screen.getByTestId("button");
+
+  expect(getAnimatedStyle(view)).toEqual({ width: 100 });
+
+  fireEvent.press(button);
+
+  jest.runAllTimers();
+
+  expect(getAnimatedStyle(view)).toEqual({ width: 150 });
+});
+
+test("useAnimatedProps()", () => {
+  function UseAnimatedStyle() {
+    const width = useSharedValue(100);
+
+    const handlePress = () => {
+      width.value = width.value + 50;
+    };
+
+    const animatedStyle = useAnimatedProps(() => {
+      return {
+        style: {
+          width: width.value,
+        },
+      };
+    }, [width]);
+
+    return (
+      <View style={{ flex: 1, alignItems: "center" }}>
+        <Animated.View testID="view" animatedProps={animatedStyle} />
+        <Button testID="button" onPress={handlePress} title="Click me" />
+      </View>
+    );
+  }
+
+  render(<UseAnimatedStyle />);
+  const view = screen.getByTestId("view");
+  const button = screen.getByTestId("button");
+
+  expect(getAnimatedStyle(view)).toEqual({ width: 100 });
+
+  fireEvent.press(button);
+
+  jest.runAllTimers();
+
+  expect(getAnimatedStyle(view)).toEqual({ width: 150 });
+});
+
+test("useAnimatedProps() - withTiming", () => {
+  function UseAnimatedStyle() {
+    const width = useSharedValue(100);
+
+    const handlePress = () => {
+      width.value = withTiming(width.value + 50, { duration: 500 });
+    };
+
+    const animatedStyle = useAnimatedProps(() => {
+      return {
+        style: {
+          width: width.value,
+        },
+      };
+    }, [width]);
+
+    return (
+      <View style={{ flex: 1, alignItems: "center" }}>
+        <Animated.View testID="view" animatedProps={animatedStyle} />
         <Button testID="button" onPress={handlePress} title="Click me" />
       </View>
     );
